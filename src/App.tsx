@@ -1,5 +1,4 @@
-import React, { useReducer } from "react";
-// import { proxy, useSnapshot } from "valtio";
+import React from "react";
 import { proxy, useSnapshot } from "./valtio";
 
 const state = {
@@ -25,20 +24,9 @@ const store = proxy(state);
 function App() {
   const snap = useSnapshot(store);
 
-  const [, render] = useReducer((x) => x + 1, 0);
-
   return (
     <>
-      <button
-        onClick={() => {
-          // @ts-ignore
-          store.bar = "I am another value";
-          store.count++;
-          render();
-        }}
-      >
-        {snap.count}
-      </button>
+      <button onClick={() => store.count++}>{snap.count}</button>
       <p>{snap.owner.info.name}</p>
       <p>{snap.bar}</p>
     </>
