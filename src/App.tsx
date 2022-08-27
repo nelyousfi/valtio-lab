@@ -1,25 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useReducer } from "react";
+// import { proxy, useSnapshot } from "valtio";
+import { proxy, useSnapshot } from "./valtio";
+
+const state = {
+  count: 0,
+  owner: {
+    info: {
+      name: "Naoufal",
+    },
+  },
+  users: new Map(),
+  get bar() {
+    return "Hello, I am bar";
+  },
+};
+Object.setPrototypeOf(state, {
+  print(from: string) {
+    console.log(`the value is ${state.count} from ${from}`);
+  },
+});
+
+const store = proxy(state);
 
 function App() {
+  const snap = useSnapshot(store);
+
+  const [, render] = useReducer((x) => x + 1, 0);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <button
+        onClick={() => {
+          // @ts-ignore
+          store.bar = "I am another value";
+          store.count++;
+          render();
+        }}
+      >
+        {snap.count}
+      </button>
+      <p>{snap.owner.info.name}</p>
+      <p>{snap.bar}</p>
+    </>
   );
 }
 
