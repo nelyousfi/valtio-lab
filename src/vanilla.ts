@@ -36,6 +36,7 @@ export const proxy = <T extends object>(initialObject: T): T => {
     });
     return snapshot;
   };
+
   const handler = {
     get(target: T, prop: string | symbol, receiver: any) {
       if (prop === LISTENERS) {
@@ -51,6 +52,7 @@ export const proxy = <T extends object>(initialObject: T): T => {
       return true;
     },
   };
+
   const proxyObject = new Proxy(baseObject, handler);
   Reflect.ownKeys(initialObject).forEach((key) => {
     const desc = Object.getOwnPropertyDescriptor(
