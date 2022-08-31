@@ -2,6 +2,10 @@ import React from "react";
 import { proxy, useSnapshot } from "./valtio";
 // import { proxy, useSnapshot } from "valtio";
 
+const state2 = {
+  something: "else",
+};
+
 const state = {
   count: 0,
   owner: {
@@ -12,6 +16,7 @@ const state = {
   get bar() {
     return "Hello, I am bar";
   },
+  store2: state2,
 };
 Object.setPrototypeOf(state, {
   print(from: string) {
@@ -50,11 +55,27 @@ const Component2 = () => {
   return <p style={{ fontWeight: "bold" }}>{info.name}</p>;
 };
 
+const Component3 = () => {
+  const snap2 = useSnapshot(store.store2);
+
+  console.log("Component3 is rendering ...");
+
+  return (
+    <>
+      <button onClick={() => (store.store2.something += " else")}>
+        Double
+      </button>
+      <p style={{ fontWeight: "bold" }}>{snap2.something}</p>
+    </>
+  );
+};
+
 const App = () => {
   return (
     <>
       <Component1 />
       <Component2 />
+      <Component3 />
     </>
   );
 };

@@ -1,4 +1,4 @@
-const LISTENERS = Symbol();
+export const LISTENERS = Symbol();
 export const SNAPSHOT = Symbol();
 
 type Listener = () => void;
@@ -56,6 +56,18 @@ export const proxy = <T extends object>(initialObject: T): T => {
     return snapshot;
   };
 
+  const propListeners = new Map<string | symbol, Listener>();
+  const getPropListener = (prop: string | symbol) => {
+    let propListener = propListeners.get(prop);
+    if (!propListener) {
+      propListener = () => {
+        notifyUpdate();
+      };
+      propListeners.set(prop, propListener);
+    }
+    return propListener;
+  };
+
   const handler = {
     get(target: T, prop: string | symbol, receiver: any) {
       if (prop === LISTENERS) {
@@ -74,8 +86,13 @@ export const proxy = <T extends object>(initialObject: T): T => {
         return true;
       }
       let nextValue: any;
-      if (this.canProxy(value)) {
+      if (value?.[LISTENERS]) {
+        nextValue = value;
+        nextValue[LISTENERS].add(getPropListener(prop));
+      } else if (this.canProxy(value)) {
         nextValue = proxy(value);
+        const listener = getPropListener(prop);
+        nextValue[LISTENERS].add(listener);
       } else {
         nextValue = value;
       }
@@ -107,6 +124,7 @@ export const subscribe = <T extends object>(
   const listener = () => {
     callback();
   };
+
   (proxyObject as any)[LISTENERS].add(listener);
 
   return () => (proxyObject as any)[LISTENERS].delete(listener);
