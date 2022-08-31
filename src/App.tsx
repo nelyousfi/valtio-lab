@@ -1,11 +1,6 @@
 import React from "react";
-// import { proxy, useSnapshot } from "./valtio";
-import { proxy, useSnapshot } from "valtio";
-
-const state2 = {
-  hello: "world!",
-};
-const store2 = proxy(state2);
+import { proxy, useSnapshot } from "./valtio";
+// import { proxy, useSnapshot } from "valtio";
 
 const state = {
   count: 0,
@@ -14,7 +9,6 @@ const state = {
       name: "Naoufal",
     },
   },
-  value2: store2,
   get bar() {
     return "Hello, I am bar";
   },
@@ -31,27 +25,29 @@ const store = proxy(state);
 const Component1 = () => {
   const snap = useSnapshot(store);
 
+  console.log("Component1 is rendering ...");
+
   return (
     <>
       <button
         onClick={() => {
-          store.value2.hello = "world!, but changed";
-          store.count = 1;
+          store.count++;
         }}
       >
         {snap.count}
       </button>
       <p>{snap.owner.info.name}</p>
       <p>{snap.bar}</p>
-      <p>{snap.value2.hello}</p>
     </>
   );
 };
 
 const Component2 = () => {
-  const snap2 = useSnapshot(store2);
+  const info = useSnapshot(store.owner.info);
 
-  return <p style={{ fontWeight: "bold" }}>{snap2.hello}</p>;
+  console.log("Component2 is rendering ...");
+
+  return <p style={{ fontWeight: "bold" }}>{info.name}</p>;
 };
 
 const App = () => {

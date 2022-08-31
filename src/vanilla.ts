@@ -9,7 +9,26 @@ const snapshotCache = new WeakMap<
   [version: number, snapshot: unknown]
 >();
 
+const isObject = (x: unknown): x is object =>
+  typeof x === "object" && x !== null;
+
+const canProxy = (x: unknown) =>
+  isObject(x) &&
+  (Array.isArray(x) || !(Symbol.iterator in x)) &&
+  !(x instanceof WeakMap) &&
+  !(x instanceof WeakSet) &&
+  !(x instanceof Error) &&
+  !(x instanceof Number) &&
+  !(x instanceof Date) &&
+  !(x instanceof String) &&
+  !(x instanceof RegExp) &&
+  !(x instanceof ArrayBuffer);
+
 export const proxy = <T extends object>(initialObject: T): T => {
+  if (!isObject(initialObject)) {
+    throw new Error("object required!");
+  }
+
   const baseObject = Object.create(Object.getPrototypeOf(initialObject));
   const listeners = new Set<Listener>();
   let version = globalVersion;
@@ -46,8 +65,21 @@ export const proxy = <T extends object>(initialObject: T): T => {
       }
       return Reflect.get(target, prop, receiver);
     },
+    canProxy,
+    is: Object.is,
     set(target: T, prop: string, value: any, receiver: any) {
-      Reflect.set(target, prop, value, receiver);
+      const hasPrevValue = Reflect.has(target, prop);
+      const prevValue = Reflect.get(target, prop, receiver);
+      if (hasPrevValue && this.is(prevValue, value)) {
+        return true;
+      }
+      let nextValue: any;
+      if (this.canProxy(value)) {
+        nextValue = proxy(value);
+      } else {
+        nextValue = value;
+      }
+      Reflect.set(target, prop, nextValue, receiver);
       notifyUpdate();
       return true;
     },
